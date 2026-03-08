@@ -15,6 +15,21 @@
 
 
 <body>
+    <!-- OFFLINE OVERLAY -->
+    <div id="offlineOverlay" class="offline-overlay hidden">
+        <div class="offline-content">
+            <div class="offline-icon">
+                <i class="fas fa-wifi"></i>
+                <div class="offline-slash"></div>
+            </div>
+            <h2>Tidak Terhubung ke Jaringan</h2>
+            <p>Mohon hubungkan perangkat Anda ke jaringan internet untuk menggunakan aplikasi ini.</p>
+            <button class="btn btn-primary" onclick="checkConnection()">
+                <i class="fas fa-sync-alt"></i> Coba Lagi
+            </button>
+        </div>
+    </div>
+
     <!-- LOGIN PAGE -->
     <div id="loginPage" class="page active">
         <div class="login-container">

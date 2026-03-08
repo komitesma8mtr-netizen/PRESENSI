@@ -1,6 +1,41 @@
 // ===================== Main App Controller (Online Version) =====================
 
+// ===================== Network Detection =====================
+function showOfflineOverlay() {
+    const overlay = document.getElementById('offlineOverlay');
+    if (overlay) overlay.classList.remove('hidden');
+}
+
+function hideOfflineOverlay() {
+    const overlay = document.getElementById('offlineOverlay');
+    if (overlay) overlay.classList.add('hidden');
+}
+
+function checkConnection() {
+    if (navigator.onLine) {
+        hideOfflineOverlay();
+        // Re-initialize if we were offline
+        initAuth();
+    } else {
+        showOfflineOverlay();
+    }
+}
+
+// Listen for online/offline events
+window.addEventListener('offline', showOfflineOverlay);
+window.addEventListener('online', function () {
+    hideOfflineOverlay();
+    // Re-initialize when back online
+    initAuth();
+});
+
 document.addEventListener('DOMContentLoaded', function () {
+    // Check network status first
+    if (!navigator.onLine) {
+        showOfflineOverlay();
+        return;
+    }
+
     // Initialize data and check API
     initData();
 

@@ -1,0 +1,86 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Cordova
+        run: npm install -g cordova
+
+      - name: Create Cordova Project
+        run: |
+          cordova create apk-build com.sman8mtr.presensikelas "Presensi Kelas"
+          cd apk-build
+          # Copy web app files to www
+          rm -rf www/*
+          cp ../*.html www/
+          cp ../*.js www/
+          cp ../*.css www/
+          cp ../*.png www/ 2>/dev/null || true
+          cp ../*.jpeg www/ 2>/dev/null || true
+          cp ../*.jpg www/ 2>/dev/null || true
+
+      - name: Configure Cordova
+        run: |
+          cd apk-build
+          cat > config.xml << 'EOF'
+          <?xml version='1.0' encoding='utf-8'?>
+          <widget id="com.sman8mtr.presensikelas" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+              <name>Presensi Kelas</name>
+              <description>Aplikasi Presensi Kelas SMAN 8 Mataram</description>
+              <author email="admin@sman8mataram.sch.id">SMAN 8 Mataram</author>
+              <content src="index.html" />
+              <access origin="*" />
+              <allow-intent href="http://*/*" />
+              <allow-intent href="https://*/*" />
+              <allow-navigation href="*" />
+              <preference name="StatusBarBackgroundColor" value="#16a34a" />
+              <preference name="Orientation" value="portrait" />
+              <preference name="android-minSdkVersion" value="24" />
+              <preference name="android-targetSdkVersion" value="34" />
+              <platform name="android">
+                  <preference name="Scheme" value="https" />
+                  <preference name="MixedContentMode" value="0" />
+              </platform>
+          </widget>
+          EOF
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Add Android Platform
+        run: |
+          cd apk-build
+          cordova platform add android
+
+      - name: Build Debug APK
+        run: |
+          cd apk-build
+          cordova build android
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: PresensiKelas-APK
+          path: apk-build/platforms/android/app/build/outputs/apk/debug/*.apk
+          retention-days: 90
