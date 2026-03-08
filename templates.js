@@ -75,8 +75,8 @@ function renderGuruPage() {
                             <div class="form-group">
                                 <label><i class="fas fa-user-check"></i> Status Kehadiran</label>
                                 <div class="status-options">
-                                    <label class="status-option"><input type="radio" name="status" value="masuk" required><span class="status-btn masuk"><i class="fas fa-sign-in-alt"></i> Masuk</span></label>
-                                    <label class="status-option"><input type="radio" name="status" value="keluar"><span class="status-btn keluar"><i class="fas fa-sign-out-alt"></i> Keluar</span></label>
+                                    <label class="status-option"><input type="radio" name="status" value="masuk" required><span class="status-btn masuk"><i class="fas fa-chalkboard-user"></i> Masuk</span></label>
+                                    <label class="status-option"><input type="radio" name="status" value="keluar"><span class="status-btn keluar"><i class="fas fa-person-running"></i> Keluar</span></label>
                                     <label class="status-option"><input type="radio" name="status" value="izin"><span class="status-btn izin"><i class="fas fa-file-alt"></i> Izin</span></label>
                                 </div>
                             </div>
