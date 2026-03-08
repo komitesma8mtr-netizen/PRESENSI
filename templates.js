@@ -9,7 +9,7 @@ function renderGuruPage() {
         <nav class="navbar glass">
             <div class="nav-brand">
                 <i class="fas fa-chalkboard-teacher"></i>
-                <span>Absensi Guru</span>
+                <span>Presensi Kelas</span>
             </div>
             <div class="nav-user">
                 <img id="guruAvatar" src="${avatar}" alt="Avatar">
