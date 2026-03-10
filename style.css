@@ -17,6 +17,73 @@
     --radius-sm: 8px;
 }
 
+/* ===================== Dark Mode Variables ===================== */
+[data-theme="dark"] {
+    --bg-primary: #0f1a0f;
+    --bg-secondary: #1a2e1a;
+    --bg-card: rgba(26, 46, 26, 0.9);
+    --text-primary: #e2f5e2;
+    --text-secondary: #a3c9a3;
+    --accent-primary: #22c55e;
+    --accent-secondary: #4ade80;
+    --glass-bg: rgba(26, 46, 26, 0.7);
+    --glass-border: rgba(34, 197, 94, 0.2);
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] body {
+    background: linear-gradient(135deg, rgba(15, 26, 15, 0.95) 0%, rgba(10, 20, 10, 0.95) 50%, rgba(15, 26, 15, 0.95) 100%), url('batik-bg.png');
+    background-size: auto, 400px;
+}
+
+[data-theme="dark"] .login-container {
+    background: radial-gradient(circle at top, rgba(34, 197, 94, 0.1) 0%, transparent 50%), url('batik-bg.png');
+    background-size: auto, 350px;
+}
+
+[data-theme="dark"] .data-table tbody tr:hover {
+    background: rgba(34, 197, 94, 0.08);
+}
+
+[data-theme="dark"] .school-map {
+    background: #1a2e1a;
+}
+
+[data-theme="dark"] .stat-icon {
+    filter: brightness(0.85);
+}
+
+/* ===================== Theme Toggle Button ===================== */
+.theme-toggle {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    font-size: 1.15rem;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+.theme-toggle:hover {
+    background: var(--accent-primary);
+    color: white;
+    transform: rotate(30deg) scale(1.1);
+    box-shadow: 0 4px 15px rgba(22, 163, 74, 0.4);
+}
+
+.theme-toggle .fa-sun { display: none; }
+.theme-toggle .fa-moon { display: inline-block; }
+
+[data-theme="dark"] .theme-toggle .fa-sun { display: inline-block; }
+[data-theme="dark"] .theme-toggle .fa-moon { display: none; }
+
 /* ===================== Reset & Base ===================== */
 * {
     margin: 0;

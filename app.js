@@ -29,6 +29,34 @@ window.addEventListener('online', function () {
     initAuth();
 });
 
+// ===================== Theme Toggle (Dark/Light Mode) =====================
+function toggleTheme() {
+    const html = document.documentElement;
+    const currentTheme = html.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+    // Smooth transition
+    document.body.style.transition = 'background 0.4s ease, color 0.4s ease';
+
+    if (newTheme === 'dark') {
+        html.setAttribute('data-theme', 'dark');
+    } else {
+        html.removeAttribute('data-theme');
+    }
+
+    localStorage.setItem('theme', newTheme);
+}
+
+function applySavedTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    }
+}
+
+// Apply theme immediately (before DOMContentLoaded to avoid flash)
+applySavedTheme();
+
 document.addEventListener('DOMContentLoaded', function () {
     // Check network status first
     if (!navigator.onLine) {

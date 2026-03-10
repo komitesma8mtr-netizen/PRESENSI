@@ -17,6 +17,7 @@ function renderGuruPage() {
                     <span id="guruName">${user.nama}</span>
                     <small id="guruMapel" class="nav-mapel">${user.mapel || '-'}</small>
                 </div>
+                <button class="theme-toggle" onclick="toggleTheme()" title="Ganti Mode Gelap/Terang"><i class="fas fa-moon"></i><i class="fas fa-sun"></i></button>
                 <button class="btn-icon" onclick="logout()"><i class="fas fa-sign-out-alt"></i></button>
             </div>
         </nav>
@@ -135,6 +136,7 @@ function renderAdminPage() {
             <div class="nav-user">
                 <img id="adminAvatar" src="${avatar}" alt="Avatar">
                 <span id="adminName">${user.nama}</span>
+                <button class="theme-toggle" onclick="toggleTheme()" title="Ganti Mode Gelap/Terang"><i class="fas fa-moon"></i><i class="fas fa-sun"></i></button>
                 <button class="btn-icon" onclick="logout()"><i class="fas fa-sign-out-alt"></i></button>
             </div>
         </nav>
