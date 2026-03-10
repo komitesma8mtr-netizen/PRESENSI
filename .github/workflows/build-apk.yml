@@ -24,8 +24,15 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK Components
+        run: |
+          sdkmanager "platforms;android-34" "build-tools;34.0.0"
+
       - name: Install Cordova
-        run: npm install -g cordova
+        run: npm install -g cordova@12
 
       - name: Create Cordova Project
         run: |
@@ -43,7 +50,7 @@ jobs:
       - name: Configure Cordova
         run: |
           cd apk-build
-          cat > config.xml << 'EOF'
+          cat > config.xml << 'XMLEOF'
           <?xml version='1.0' encoding='utf-8'?>
           <widget id="com.sman8mtr.presensikelas" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
               <name>Presensi Kelas</name>
@@ -58,25 +65,44 @@ jobs:
               <preference name="Orientation" value="portrait" />
               <preference name="android-minSdkVersion" value="24" />
               <preference name="android-targetSdkVersion" value="34" />
+              <preference name="GradlePluginGoogleServicesEnabled" value="false" />
               <platform name="android">
                   <preference name="Scheme" value="https" />
                   <preference name="MixedContentMode" value="0" />
               </platform>
           </widget>
-          EOF
+          XMLEOF
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Add Android Platform
+      - name: Add Android Platform & Build
         run: |
           cd apk-build
-          cordova platform add android
+          cordova platform add android@13
+          
+      - name: Patch Gradle for JDK 17 compatibility
+        run: |
+          cd apk-build
+          # Fix gradle wrapper to use compatible version
+          GRADLE_PROPS="platforms/android/gradle/wrapper/gradle-wrapper.properties"
+          if [ -f "$GRADLE_PROPS" ]; then
+            sed -i 's|gradle-.*-all.zip|gradle-8.7-all.zip|g' "$GRADLE_PROPS"
+            sed -i 's|gradle-.*-bin.zip|gradle-8.7-bin.zip|g' "$GRADLE_PROPS"
+          fi
+          # Set Android Gradle Plugin version compatible with Gradle 8.7
+          BUILD_GRADLE="platforms/android/build.gradle"
+          if [ -f "$BUILD_GRADLE" ]; then
+            sed -i "s|com.android.tools.build:gradle:.*'|com.android.tools.build:gradle:8.3.2'|g" "$BUILD_GRADLE"
+          fi
+          # Fix cdvCompileSdkVersion if needed
+          APP_BUILD_GRADLE="platforms/android/app/build.gradle"
+          if [ -f "$APP_BUILD_GRADLE" ]; then
+            sed -i 's/cdvCompileSdkVersion/34/g' "$APP_BUILD_GRADLE" 2>/dev/null || true
+          fi
 
       - name: Build Debug APK
         run: |
           cd apk-build
-          cordova build android
+          export ANDROID_SDK_ROOT=$ANDROID_HOME
+          cordova build android -- --gradleArg=-Dorg.gradle.jvmargs=-Xmx2048m
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
