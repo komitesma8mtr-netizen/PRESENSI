@@ -34,6 +34,21 @@ jobs:
       - name: Install Cordova
         run: npm install -g cordova@12
 
+      - name: Install ImageMagick
+        run: sudo apt-get install -y imagemagick
+
+      - name: Generate App Icons
+        run: |
+          mkdir -p res/icons
+          # Generate all required Android icon sizes from icon.png
+          convert icon.png -resize 36x36   res/icons/icon-36-ldpi.png
+          convert icon.png -resize 48x48   res/icons/icon-48-mdpi.png
+          convert icon.png -resize 72x72   res/icons/icon-72-hdpi.png
+          convert icon.png -resize 96x96   res/icons/icon-96-xhdpi.png
+          convert icon.png -resize 144x144 res/icons/icon-144-xxhdpi.png
+          convert icon.png -resize 192x192 res/icons/icon-192-xxxhdpi.png
+          ls -la res/icons/
+
       - name: Create Cordova Project
         run: |
           cordova create apk-build com.sman8mtr.presensikelas "Presensi Kelas"
@@ -46,6 +61,9 @@ jobs:
           cp ../*.png www/ 2>/dev/null || true
           cp ../*.jpeg www/ 2>/dev/null || true
           cp ../*.jpg www/ 2>/dev/null || true
+          # Copy icon files
+          mkdir -p res/icons
+          cp ../res/icons/* res/icons/
 
       - name: Configure Cordova
         run: |
@@ -69,6 +87,12 @@ jobs:
               <platform name="android">
                   <preference name="Scheme" value="https" />
                   <preference name="MixedContentMode" value="0" />
+                  <icon density="ldpi" src="res/icons/icon-36-ldpi.png" />
+                  <icon density="mdpi" src="res/icons/icon-48-mdpi.png" />
+                  <icon density="hdpi" src="res/icons/icon-72-hdpi.png" />
+                  <icon density="xhdpi" src="res/icons/icon-96-xhdpi.png" />
+                  <icon density="xxhdpi" src="res/icons/icon-144-xxhdpi.png" />
+                  <icon density="xxxhdpi" src="res/icons/icon-192-xxxhdpi.png" />
               </platform>
           </widget>
           XMLEOF
