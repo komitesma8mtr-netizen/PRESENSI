@@ -122,6 +122,7 @@ function renderAdminPage() {
         { id: 'emptyclass', icon: 'fa-door-open', label: 'Kelas Kosong', render: renderAdminEmptyClass },
         { id: 'gpsradius', icon: 'fa-map-marker-alt', label: 'Radius GPS', render: renderAdminGpsRadius },
         { id: 'reports', icon: 'fa-print', label: 'Cetak Laporan', render: renderAdminReports },
+        { id: 'jadwal', icon: 'fa-calendar-alt', label: 'Jadwal Pelajaran', render: renderAdminJadwal },
         { id: 'settings', icon: 'fa-cog', label: 'Pengaturan', render: renderAdminSettings },
         { id: 'school', icon: 'fa-school', label: 'Profil Sekolah', render: renderAdminSchool }
     ];
@@ -333,6 +334,39 @@ function renderAdminSchool() {
                         <div class="form-group"><label><i class="fas fa-map-marker-alt"></i> Alamat Sekolah</label><textarea id="schoolAddress" rows="3" placeholder="Alamat Lengkap Sekolah"></textarea></div>
                         <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan Profil Sekolah</button>
                     </form>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderAdminJadwal() {
+    return `
+        <div id="menuJadwal" class="menu-content">
+            <h1 class="page-title"><i class="fas fa-calendar-alt"></i> Jadwal Pelajaran</h1>
+            <div class="card glass">
+                <div class="card-header"><h2><i class="fas fa-upload"></i> Upload Gambar Jadwal</h2></div>
+                <div class="card-body">
+                    <div class="jadwal-upload-area" id="jadwalDropZone" onclick="document.getElementById('jadwalFileInput').click()">
+                        <input type="file" id="jadwalFileInput" accept="image/jpeg,image/png" style="display:none" onchange="uploadJadwalImage(this)">
+                        <div class="jadwal-upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                        <p class="jadwal-upload-text">Klik atau seret gambar ke sini</p>
+                        <p class="jadwal-upload-hint">Format: JPG / PNG (Maks 5MB)</p>
+                    </div>
+                </div>
+            </div>
+            <div id="jadwalPreviewContainer" class="card glass mt-20 hidden">
+                <div class="card-header">
+                    <h2><i class="fas fa-image"></i> Preview Jadwal Pelajaran</h2>
+                    <button class="btn btn-danger btn-sm" onclick="deleteJadwalImage()" title="Hapus Gambar">
+                        <i class="fas fa-trash"></i> Hapus
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div id="jadwalFileInfo" class="jadwal-file-info"></div>
+                    <div class="jadwal-preview">
+                        <img id="jadwalPreviewImg" src="" alt="Jadwal Pelajaran" onclick="openJadwalFullscreen()">
+                    </div>
                 </div>
             </div>
         </div>

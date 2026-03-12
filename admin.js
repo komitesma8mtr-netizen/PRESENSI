@@ -901,4 +901,154 @@ document.addEventListener('click', function (e) {
     if (e.target.closest('.menu-item[data-menu="gpsradius"]')) {
         setTimeout(initGpsRadiusMap, 100);
     }
+    if (e.target.closest('.menu-item[data-menu="jadwal"]')) {
+        setTimeout(loadJadwalPreview, 100);
+        setTimeout(initJadwalDragDrop, 200);
+    }
 });
+
+// ===================== Jadwal Pelajaran Upload =====================
+
+function uploadJadwalImage(input) {
+    if (!input.files || !input.files[0]) return;
+
+    const file = input.files[0];
+
+    // Validate file type
+    if (!file.type.match(/^image\/(jpeg|png)$/)) {
+        showAlert('Error', 'Hanya file JPG dan PNG yang diperbolehkan!', 'danger');
+        input.value = '';
+        return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+        showAlert('Error', 'Ukuran file maksimal 5MB!', 'danger');
+        input.value = '';
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        const jadwalData = {
+            image: e.target.result,
+            fileName: file.name,
+            fileSize: file.size,
+            uploadDate: new Date().toISOString()
+        };
+
+        try {
+            localStorage.setItem('jadwalPelajaran', JSON.stringify(jadwalData));
+            loadJadwalPreview();
+            showAlert('Berhasil', 'Gambar jadwal pelajaran berhasil diupload!', 'success');
+        } catch (err) {
+            if (err.name === 'QuotaExceededError' || err.code === 22) {
+                showAlert('Error', 'Penyimpanan penuh! Coba gunakan gambar dengan ukuran lebih kecil.', 'danger');
+            } else {
+                showAlert('Error', 'Gagal menyimpan gambar: ' + err.message, 'danger');
+            }
+        }
+    };
+    reader.readAsDataURL(file);
+}
+
+function loadJadwalPreview() {
+    const container = document.getElementById('jadwalPreviewContainer');
+    const img = document.getElementById('jadwalPreviewImg');
+    const fileInfo = document.getElementById('jadwalFileInfo');
+
+    if (!container || !img) return;
+
+    try {
+        const saved = localStorage.getItem('jadwalPelajaran');
+        if (saved) {
+            const data = JSON.parse(saved);
+            img.src = data.image;
+            container.classList.remove('hidden');
+
+            // Show file info
+            const sizeKB = (data.fileSize / 1024).toFixed(1);
+            const uploadDate = new Date(data.uploadDate);
+            const dateStr = uploadDate.toLocaleDateString('id-ID', {
+                day: 'numeric', month: 'long', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+
+            if (fileInfo) {
+                fileInfo.innerHTML = `
+                    <i class="fas fa-file-image"></i>
+                    <span><strong>${data.fileName}</strong> — ${sizeKB} KB — Diupload: ${dateStr}</span>
+                `;
+            }
+        } else {
+            container.classList.add('hidden');
+        }
+    } catch (e) {
+        console.error('Error loading jadwal preview:', e);
+        container.classList.add('hidden');
+    }
+}
+
+function deleteJadwalImage() {
+    if (!confirm('Yakin ingin menghapus gambar jadwal pelajaran?')) return;
+
+    localStorage.removeItem('jadwalPelajaran');
+    loadJadwalPreview();
+    showAlert('Berhasil', 'Gambar jadwal pelajaran berhasil dihapus!', 'success');
+
+    // Reset input
+    const fileInput = document.getElementById('jadwalFileInput');
+    if (fileInput) fileInput.value = '';
+}
+
+function openJadwalFullscreen() {
+    const saved = localStorage.getItem('jadwalPelajaran');
+    if (!saved) return;
+
+    const data = JSON.parse(saved);
+
+    const overlay = document.createElement('div');
+    overlay.className = 'jadwal-fullscreen-overlay';
+    overlay.innerHTML = `
+        <button class="jadwal-fullscreen-close" onclick="this.parentElement.remove()">
+            <i class="fas fa-times"></i>
+        </button>
+        <img src="${data.image}" alt="Jadwal Pelajaran">
+    `;
+    overlay.addEventListener('click', function (e) {
+        if (e.target === overlay) overlay.remove();
+    });
+
+    document.body.appendChild(overlay);
+}
+
+function initJadwalDragDrop() {
+    const dropZone = document.getElementById('jadwalDropZone');
+    if (!dropZone || dropZone.dataset.dragInit) return;
+    dropZone.dataset.dragInit = 'true';
+
+    ['dragenter', 'dragover'].forEach(evt => {
+        dropZone.addEventListener(evt, function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.add('drag-over');
+        });
+    });
+
+    ['dragleave', 'drop'].forEach(evt => {
+        dropZone.addEventListener(evt, function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.remove('drag-over');
+        });
+    });
+
+    dropZone.addEventListener('drop', function (e) {
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            const fileInput = document.getElementById('jadwalFileInput');
+            fileInput.files = files;
+            uploadJadwalImage(fileInput);
+        }
+    });
+}
