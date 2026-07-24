@@ -1,7 +1,7 @@
 // ===================== Data Module (Online Version) =====================
 // Uses Google Sheets API via Apps Script
 
-const KELAS_REGULER = [
+const DEFAULT_KELAS_REGULER = [
     // Kelas X
     'X.1', 'X.2', 'X.3', 'X.4', 'X.5', 'X.6', 'X.7', 'X.8',
     // Kelas XI
@@ -10,12 +10,64 @@ const KELAS_REGULER = [
     'XII. IKL 1', 'XII. IKL 2', 'XII. IKL 3', 'XII. IT 1', 'XII. IT 2', 'XII. HM', 'XII. SOS 1', 'XII. SOS 2', 'XII. SOS 3'
 ];
 
-const RUANGAN_KHUSUS = [
+const DEFAULT_RUANGAN_KHUSUS = [
     'MUSHOLLA', 'LAPANGAN. DALAM', 'LAPANGAN. LUAR', 'PERPUSTAKAAN', 'LAB KOMPUTER', 'RUANG AGAMA HINDU', 'UPACARA BENDERA'
 ];
 
-// Combined list for backward compatibility
-const KELAS_LIST = [...KELAS_REGULER, ...RUANGAN_KHUSUS];
+// Dynamic kelas lists (loaded from localStorage or defaults)
+let KELAS_REGULER = JSON.parse(localStorage.getItem('kelasReguler')) || [...DEFAULT_KELAS_REGULER];
+let RUANGAN_KHUSUS = JSON.parse(localStorage.getItem('ruanganKhusus')) || [...DEFAULT_RUANGAN_KHUSUS];
+let KELAS_LIST = [...KELAS_REGULER, ...RUANGAN_KHUSUS];
+
+// ===================== Kelas Management Functions =====================
+function refreshKelasList() {
+    KELAS_LIST = [...KELAS_REGULER, ...RUANGAN_KHUSUS];
+}
+
+function saveKelasToStorage() {
+    localStorage.setItem('kelasReguler', JSON.stringify(KELAS_REGULER));
+    localStorage.setItem('ruanganKhusus', JSON.stringify(RUANGAN_KHUSUS));
+    refreshKelasList();
+}
+
+function addKelasReguler(nama) {
+    nama = nama.trim().toUpperCase();
+    if (!nama) return { success: false, message: 'Nama kelas tidak boleh kosong!' };
+    if (KELAS_LIST.includes(nama)) return { success: false, message: 'Kelas sudah ada!' };
+    KELAS_REGULER.push(nama);
+    saveKelasToStorage();
+    return { success: true, message: 'Kelas berhasil ditambahkan!' };
+}
+
+function addRuanganKhusus(nama) {
+    nama = nama.trim().toUpperCase();
+    if (!nama) return { success: false, message: 'Nama ruangan tidak boleh kosong!' };
+    if (KELAS_LIST.includes(nama)) return { success: false, message: 'Ruangan sudah ada!' };
+    RUANGAN_KHUSUS.push(nama);
+    saveKelasToStorage();
+    return { success: true, message: 'Ruangan berhasil ditambahkan!' };
+}
+
+function deleteKelasItem(nama) {
+    const idxReguler = KELAS_REGULER.indexOf(nama);
+    const idxKhusus = RUANGAN_KHUSUS.indexOf(nama);
+    if (idxReguler !== -1) {
+        KELAS_REGULER.splice(idxReguler, 1);
+    } else if (idxKhusus !== -1) {
+        RUANGAN_KHUSUS.splice(idxKhusus, 1);
+    } else {
+        return { success: false, message: 'Kelas tidak ditemukan!' };
+    }
+    saveKelasToStorage();
+    return { success: true, message: 'Kelas berhasil dihapus!' };
+}
+
+function resetKelasToDefault() {
+    KELAS_REGULER = [...DEFAULT_KELAS_REGULER];
+    RUANGAN_KHUSUS = [...DEFAULT_RUANGAN_KHUSUS];
+    saveKelasToStorage();
+}
+
 
 const JAM_OPTIONS = [
     { value: 0, label: 'Jam ke-0 ' },

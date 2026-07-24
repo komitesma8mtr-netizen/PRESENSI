@@ -1925,3 +1925,149 @@ textarea:focus {
     background: rgba(255,255,255,0.3);
     transform: rotate(90deg);
 }
+
+/* ===================== Kelola Kelas ===================== */
+.tambah-kelas-form {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.tambah-kelas-form input {
+    flex: 1;
+    min-width: 200px;
+}
+
+.tambah-kelas-form select {
+    min-width: 160px;
+}
+
+.kelas-list-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+.kelas-list-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    border: 1px solid var(--glass-border);
+    transition: all 0.2s;
+}
+
+.kelas-list-item:hover {
+    border-color: var(--accent-secondary);
+    transform: translateY(-1px);
+}
+
+.kelas-list-item.khusus {
+    border-left: 3px solid #a855f7;
+}
+
+.kelas-list-item.reguler {
+    border-left: 3px solid var(--accent-primary);
+}
+
+.kelas-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.kelas-list-item.khusus .kelas-number {
+    background: linear-gradient(135deg, #a855f7, #d946ef);
+}
+
+.kelas-item-name {
+    flex: 1;
+    font-weight: 600;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.btn-icon-sm {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+
+.qr-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.qr-code-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+}
+
+.qr-card {
+    text-align: center;
+    padding: 16px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--glass-border);
+    transition: all 0.3s;
+}
+
+.qr-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.qr-img {
+    width: 150px;
+    height: 150px;
+    border-radius: 8px;
+    background: white;
+    padding: 8px;
+}
+
+.qr-label {
+    margin-top: 10px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+    .kelas-list-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    }
+
+    .tambah-kelas-form {
+        flex-direction: column;
+    }
+
+    .tambah-kelas-form input,
+    .tambah-kelas-form select {
+        width: 100%;
+    }
+
+    .qr-code-container {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    }
+}

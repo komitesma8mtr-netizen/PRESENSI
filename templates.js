@@ -122,7 +122,8 @@ function renderAdminPage() {
         { id: 'emptyclass', icon: 'fa-door-open', label: 'Kelas Kosong', render: renderAdminEmptyClass },
         { id: 'gpsradius', icon: 'fa-map-marker-alt', label: 'Radius GPS', render: renderAdminGpsRadius },
         { id: 'reports', icon: 'fa-print', label: 'Cetak Laporan', render: renderAdminReports },
-        { id: 'jadwal', icon: 'fa-calendar-alt', label: 'Jadwal Pelajaran', render: renderAdminJadwal },
+        { id: 'jadwal', icon: 'fa-calendar-alt', label: 'Input Jadwal', render: renderAdminJadwal },
+        { id: 'kelolakelas', icon: 'fa-chalkboard', label: 'Kelola Kelas', render: renderAdminKelolaKelas },
         { id: 'settings', icon: 'fa-cog', label: 'Pengaturan', render: renderAdminSettings },
         { id: 'school', icon: 'fa-school', label: 'Profil Sekolah', render: renderAdminSchool }
     ];
@@ -374,6 +375,57 @@ function renderAdminJadwal() {
                     <div class="jadwal-preview">
                         <img id="jadwalPreviewImg" src="" alt="Jadwal Pelajaran" onclick="openJadwalFullscreen()">
                     </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderAdminKelolaKelas() {
+    return `
+        <div id="menuKelolakelas" class="menu-content">
+            <h1 class="page-title"><i class="fas fa-chalkboard"></i> Kelola Kelas</h1>
+            
+            <div class="card glass">
+                <div class="card-header"><h2><i class="fas fa-plus-circle"></i> Tambah Kelas Baru</h2></div>
+                <div class="card-body">
+                    <div class="tambah-kelas-form">
+                        <input type="text" id="inputKelasBaruNama" placeholder="Nama kelas baru, contoh: X.10 atau LAB BIOLOGI">
+                        <select id="inputKelasBaruTipe">
+                            <option value="reguler">Kelas Reguler</option>
+                            <option value="khusus">Ruangan Khusus</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="tambahKelasBaru()">
+                            <i class="fas fa-plus"></i> Tambah Kelas
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card glass mt-20">
+                <div class="card-header">
+                    <h2><i class="fas fa-list"></i> Daftar Kelas ( <span id="totalKelasCount">0</span> )</h2>
+                    <button class="btn btn-danger btn-sm" onclick="resetKelasList()" title="Reset ke default">
+                        <i class="fas fa-undo"></i> Reset Default
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div id="kelasListGrid" class="kelas-list-grid"></div>
+                </div>
+            </div>
+
+            <div class="card glass mt-20">
+                <div class="card-header"><h2><i class="fas fa-qrcode"></i> QR Code Kelas</h2></div>
+                <div class="card-body">
+                    <div class="qr-actions">
+                        <button class="btn btn-success" onclick="generateAllQRCodes()">
+                            <i class="fas fa-qrcode"></i> Generate Semua QR Code
+                        </button>
+                        <button class="btn btn-secondary" onclick="cetakAllQRCodes()">
+                            <i class="fas fa-print"></i> Cetak Semua QR Code
+                        </button>
+                    </div>
+                    <div id="qrCodeContainer" class="qr-code-container mt-20"></div>
                 </div>
             </div>
         </div>

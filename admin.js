@@ -59,6 +59,9 @@ async function initAdminDashboard() {
     // Auto-refresh empty class notification every 5 minutes
     setInterval(checkEmptyClassesRealtime, 5 * 60 * 1000);
 
+    // Load kelola kelas
+    loadKelolaKelas();
+
     // Set default dates (only if elements exist)
     const emptyClassDate = document.getElementById('emptyClassDate');
     const reportMonth = document.getElementById('reportMonth');
@@ -1063,4 +1066,166 @@ function initJadwalDragDrop() {
             uploadJadwalImage(fileInput);
         }
     });
+}
+
+// ===================== Kelola Kelas =====================
+function loadKelolaKelas() {
+    const container = document.getElementById('kelasListGrid');
+    const countEl = document.getElementById('totalKelasCount');
+    if (!container) return;
+
+    const allKelas = [...KELAS_REGULER, ...RUANGAN_KHUSUS];
+    if (countEl) countEl.textContent = allKelas.length;
+
+    container.innerHTML = allKelas.map((kelas, idx) => {
+        const isKhusus = RUANGAN_KHUSUS.includes(kelas);
+        return `
+            <div class="kelas-list-item ${isKhusus ? 'khusus' : 'reguler'}">
+                <span class="kelas-number">${idx + 1}</span>
+                <span class="kelas-item-name">${kelas}</span>
+                <button class="btn btn-danger btn-icon-sm" onclick="hapusKelas('${kelas.replace(/'/g, "\\'")}')"
+                    title="Hapus ${kelas}">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+    }).join('');
+}
+
+function tambahKelasBaru() {
+    const namaInput = document.getElementById('inputKelasBaruNama');
+    const tipeSelect = document.getElementById('inputKelasBaruTipe');
+    if (!namaInput || !tipeSelect) return;
+
+    const nama = namaInput.value.trim();
+    const tipe = tipeSelect.value;
+
+    if (!nama) {
+        showAlert('Perhatian', 'Masukkan nama kelas terlebih dahulu!', 'warning');
+        return;
+    }
+
+    let result;
+    if (tipe === 'khusus') {
+        result = addRuanganKhusus(nama);
+    } else {
+        result = addKelasReguler(nama);
+    }
+
+    if (result.success) {
+        showAlert('Berhasil', result.message, 'success');
+        namaInput.value = '';
+        loadKelolaKelas();
+    } else {
+        showAlert('Gagal', result.message, 'warning');
+    }
+}
+
+function hapusKelas(nama) {
+    if (!confirm(`Yakin ingin menghapus "${nama}"?`)) return;
+
+    const result = deleteKelasItem(nama);
+    if (result.success) {
+        showAlert('Berhasil', result.message, 'success');
+        loadKelolaKelas();
+    } else {
+        showAlert('Gagal', result.message, 'warning');
+    }
+}
+
+function resetKelasList() {
+    if (!confirm('Yakin ingin mereset daftar kelas ke pengaturan default? Semua perubahan akan hilang.')) return;
+    resetKelasToDefault();
+    showAlert('Berhasil', 'Daftar kelas berhasil direset ke default.', 'success');
+    loadKelolaKelas();
+}
+
+function generateAllQRCodes() {
+    const container = document.getElementById('qrCodeContainer');
+    if (!container) return;
+
+    const allKelas = [...KELAS_REGULER, ...RUANGAN_KHUSUS];
+
+    container.innerHTML = '<div style="text-align:center"><i class="fas fa-spinner fa-spin"></i> Generating QR Codes...</div>';
+
+    // Use a simple QR code generation via API
+    const qrCards = allKelas.map(kelas => {
+        const qrData = encodeURIComponent(kelas);
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${qrData}`;
+        return `
+            <div class="qr-card">
+                <img src="${qrUrl}" alt="QR ${kelas}" class="qr-img">
+                <div class="qr-label">${kelas}</div>
+            </div>
+        `;
+    }).join('');
+
+    container.innerHTML = qrCards;
+}
+
+function cetakAllQRCodes() {
+    const container = document.getElementById('qrCodeContainer');
+    if (!container || container.innerHTML.trim() === '') {
+        showAlert('Info', 'Generate QR Code terlebih dahulu sebelum mencetak.', 'warning');
+        return;
+    }
+
+    const allKelas = [...KELAS_REGULER, ...RUANGAN_KHUSUS];
+    const printWindow = window.open('', '_blank');
+
+    const qrHtml = allKelas.map(kelas => {
+        const qrData = encodeURIComponent(kelas);
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${qrData}`;
+        return `
+            <div class="qr-print-item">
+                <img src="${qrUrl}" alt="QR ${kelas}">
+                <p>${kelas}</p>
+            </div>
+        `;
+    }).join('');
+
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>QR Code Kelas - SMAN 8 Mataram</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 20px; }
+                h1 { text-align: center; margin-bottom: 24px; }
+                .qr-print-grid {
+                    display: grid;
+                    grid-template-columns: repeat(4, 1fr);
+                    gap: 24px;
+                    page-break-inside: auto;
+                }
+                .qr-print-item {
+                    text-align: center;
+                    padding: 16px;
+                    border: 1px solid #ddd;
+                    border-radius: 8px;
+                    page-break-inside: avoid;
+                }
+                .qr-print-item img {
+                    width: 150px;
+                    height: 150px;
+                }
+                .qr-print-item p {
+                    margin-top: 8px;
+                    font-weight: bold;
+                    font-size: 14px;
+                }
+                @media print {
+                    body { padding: 0; }
+                    .qr-print-grid { gap: 16px; }
+                }
+            </style>
+        </head>
+        <body>
+            <h1>QR Code Kelas - SMAN 8 Mataram</h1>
+            <div class="qr-print-grid">${qrHtml}</div>
+            <script>setTimeout(() => { window.print(); }, 1500);<\/script>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
 }
