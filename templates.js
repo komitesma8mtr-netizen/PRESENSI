@@ -351,30 +351,50 @@ function renderAdminSchool() {
 function renderAdminJadwal() {
     return `
         <div id="menuJadwal" class="menu-content">
-            <h1 class="page-title"><i class="fas fa-calendar-alt"></i> Jadwal Pelajaran</h1>
+            <h1 class="page-title"><i class="fas fa-calendar-alt"></i> Input Jadwal</h1>
+            
             <div class="card glass">
-                <div class="card-header"><h2><i class="fas fa-upload"></i> Upload Gambar Jadwal</h2></div>
+                <div class="card-header"><h2><i class="fas fa-cloud-upload-alt"></i> Upload Jadwal</h2></div>
                 <div class="card-body">
                     <div class="jadwal-upload-area" id="jadwalDropZone" onclick="document.getElementById('jadwalFileInput').click()">
-                        <input type="file" id="jadwalFileInput" accept="image/jpeg,image/png" style="display:none" onchange="uploadJadwalImage(this)">
+                        <input type="file" id="jadwalFileInput" accept="image/jpeg,image/png,application/pdf" style="display:none" onchange="uploadJadwalFile(this)">
                         <div class="jadwal-upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
-                        <p class="jadwal-upload-text">Klik atau seret gambar ke sini</p>
-                        <p class="jadwal-upload-hint">Format: JPG / PNG (Maks 5MB)</p>
+                        <p class="jadwal-upload-text">Drag & Drop File di Sini</p>
+                        <p class="jadwal-upload-subtitle">atau klik untuk memilih file</p>
+                        <div class="jadwal-file-types">
+                            <span class="file-type-badge img-badge"><i class="fas fa-image"></i> JPG/PNG</span>
+                            <span class="file-type-badge pdf-badge"><i class="fas fa-file-pdf"></i> PDF</span>
+                        </div>
+                        <p class="jadwal-upload-hint">Ukuran maksimal 5MB</p>
+                    </div>
+
+                    <div class="jadwal-url-divider">
+                        <span>atau masukkan URL</span>
+                    </div>
+
+                    <div class="jadwal-url-section">
+                        <label class="jadwal-url-label"><i class="fas fa-link"></i> URL Jadwal (Google Drive, dll)</label>
+                        <div class="jadwal-url-form">
+                            <input type="url" id="jadwalUrlInput" placeholder="https://drive.google.com/file/d/...">
+                            <button class="btn btn-primary" onclick="simpanJadwalUrl()">
+                                <i class="fas fa-save"></i> Simpan
+                            </button>
+                        </div>
+                        <p class="jadwal-url-hint"><i class="fas fa-info-circle"></i> Untuk file PDF besar, upload ke Google Drive lalu paste link di sini</p>
                     </div>
                 </div>
             </div>
+
             <div id="jadwalPreviewContainer" class="card glass mt-20 hidden">
                 <div class="card-header">
-                    <h2><i class="fas fa-image"></i> Preview Jadwal Pelajaran</h2>
-                    <button class="btn btn-danger btn-sm" onclick="deleteJadwalImage()" title="Hapus Gambar">
+                    <h2><i class="fas fa-eye"></i> Preview Jadwal Saat Ini</h2>
+                    <button class="btn btn-danger btn-sm" onclick="deleteJadwalData()" title="Hapus Jadwal">
                         <i class="fas fa-trash"></i> Hapus
                     </button>
                 </div>
                 <div class="card-body">
                     <div id="jadwalFileInfo" class="jadwal-file-info"></div>
-                    <div class="jadwal-preview">
-                        <img id="jadwalPreviewImg" src="" alt="Jadwal Pelajaran" onclick="openJadwalFullscreen()">
-                    </div>
+                    <div id="jadwalPreviewContent" class="jadwal-preview"></div>
                 </div>
             </div>
         </div>

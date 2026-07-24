@@ -924,14 +924,15 @@ document.addEventListener('click', function (e) {
 
 // ===================== Jadwal Pelajaran Upload =====================
 
-function uploadJadwalImage(input) {
+function uploadJadwalFile(input) {
     if (!input.files || !input.files[0]) return;
 
     const file = input.files[0];
 
     // Validate file type
-    if (!file.type.match(/^image\/(jpeg|png)$/)) {
-        showAlert('Error', 'Hanya file JPG dan PNG yang diperbolehkan!', 'danger');
+    const validTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+    if (!validTypes.includes(file.type)) {
+        showAlert('Error', 'Hanya file JPG, PNG, dan PDF yang diperbolehkan!', 'danger');
         input.value = '';
         return;
     }
@@ -946,7 +947,8 @@ function uploadJadwalImage(input) {
     const reader = new FileReader();
     reader.onload = function (e) {
         const jadwalData = {
-            image: e.target.result,
+            type: file.type.startsWith('image/') ? 'image' : 'pdf',
+            data: e.target.result,
             fileName: file.name,
             fileSize: file.size,
             uploadDate: new Date().toISOString()
@@ -955,48 +957,116 @@ function uploadJadwalImage(input) {
         try {
             localStorage.setItem('jadwalPelajaran', JSON.stringify(jadwalData));
             loadJadwalPreview();
-            showAlert('Berhasil', 'Gambar jadwal pelajaran berhasil diupload!', 'success');
+            showAlert('Berhasil', 'Jadwal pelajaran berhasil diupload!', 'success');
         } catch (err) {
             if (err.name === 'QuotaExceededError' || err.code === 22) {
-                showAlert('Error', 'Penyimpanan penuh! Coba gunakan gambar dengan ukuran lebih kecil.', 'danger');
+                showAlert('Error', 'Penyimpanan penuh! Untuk file besar, gunakan URL Google Drive.', 'danger');
             } else {
-                showAlert('Error', 'Gagal menyimpan gambar: ' + err.message, 'danger');
+                showAlert('Error', 'Gagal menyimpan: ' + err.message, 'danger');
             }
         }
     };
     reader.readAsDataURL(file);
 }
 
+function simpanJadwalUrl() {
+    const urlInput = document.getElementById('jadwalUrlInput');
+    if (!urlInput) return;
+
+    const url = urlInput.value.trim();
+    if (!url) {
+        showAlert('Perhatian', 'Masukkan URL jadwal terlebih dahulu!', 'warning');
+        return;
+    }
+
+    // Basic URL validation
+    try {
+        new URL(url);
+    } catch (e) {
+        showAlert('Error', 'URL tidak valid!', 'danger');
+        return;
+    }
+
+    const jadwalData = {
+        type: 'url',
+        url: url,
+        uploadDate: new Date().toISOString()
+    };
+
+    localStorage.setItem('jadwalPelajaran', JSON.stringify(jadwalData));
+    loadJadwalPreview();
+    urlInput.value = '';
+    showAlert('Berhasil', 'URL jadwal berhasil disimpan!', 'success');
+}
+
 function loadJadwalPreview() {
     const container = document.getElementById('jadwalPreviewContainer');
-    const img = document.getElementById('jadwalPreviewImg');
     const fileInfo = document.getElementById('jadwalFileInfo');
+    const previewContent = document.getElementById('jadwalPreviewContent');
 
-    if (!container || !img) return;
+    if (!container) return;
 
     try {
         const saved = localStorage.getItem('jadwalPelajaran');
-        if (saved) {
-            const data = JSON.parse(saved);
-            img.src = data.image;
-            container.classList.remove('hidden');
+        if (!saved) {
+            container.classList.add('hidden');
+            return;
+        }
 
-            // Show file info
-            const sizeKB = (data.fileSize / 1024).toFixed(1);
-            const uploadDate = new Date(data.uploadDate);
-            const dateStr = uploadDate.toLocaleDateString('id-ID', {
-                day: 'numeric', month: 'long', year: 'numeric',
-                hour: '2-digit', minute: '2-digit'
-            });
+        const data = JSON.parse(saved);
+        container.classList.remove('hidden');
 
-            if (fileInfo) {
+        const uploadDate = new Date(data.uploadDate);
+        const dateStr = uploadDate.toLocaleDateString('id-ID', {
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        });
+
+        // File info
+        if (fileInfo) {
+            if (data.type === 'url') {
                 fileInfo.innerHTML = `
-                    <i class="fas fa-file-image"></i>
-                    <span><strong>${data.fileName}</strong> — ${sizeKB} KB — Diupload: ${dateStr}</span>
+                    <i class="fas fa-link"></i>
+                    <span><strong>Jadwal dari URL</strong></span>
+                    <span class="jadwal-date">Diupload: ${dateStr}</span>
+                `;
+            } else if (data.type === 'pdf') {
+                const sizeKB = (data.fileSize / 1024).toFixed(1);
+                fileInfo.innerHTML = `
+                    <i class="fas fa-file-pdf" style="color:#ef4444"></i>
+                    <span><strong>${data.fileName}</strong> — ${sizeKB} KB</span>
+                    <span class="jadwal-date">Diupload: ${dateStr}</span>
+                `;
+            } else {
+                const sizeKB = (data.fileSize / 1024).toFixed(1);
+                fileInfo.innerHTML = `
+                    <i class="fas fa-file-image" style="color:var(--accent-primary)"></i>
+                    <span><strong>${data.fileName}</strong> — ${sizeKB} KB</span>
+                    <span class="jadwal-date">Diupload: ${dateStr}</span>
                 `;
             }
-        } else {
-            container.classList.add('hidden');
+        }
+
+        // Preview content
+        if (previewContent) {
+            if (data.type === 'url') {
+                previewContent.innerHTML = `
+                    <a href="${data.url}" target="_blank" class="jadwal-url-link">
+                        <i class="fas fa-external-link-alt"></i> Buka Jadwal di Tab Baru
+                    </a>
+                    <iframe src="${data.url}" class="jadwal-iframe" frameborder="0" allowfullscreen></iframe>
+                `;
+            } else if (data.type === 'pdf') {
+                previewContent.innerHTML = `
+                    <object data="${data.data}" type="application/pdf" class="jadwal-pdf-embed">
+                        <p>Browser tidak mendukung preview PDF. <a href="${data.data}" download="${data.fileName}">Download PDF</a></p>
+                    </object>
+                `;
+            } else {
+                previewContent.innerHTML = `
+                    <img src="${data.data}" alt="Jadwal Pelajaran" onclick="openJadwalFullscreen()" style="cursor:zoom-in">
+                `;
+            }
         }
     } catch (e) {
         console.error('Error loading jadwal preview:', e);
@@ -1004,16 +1074,18 @@ function loadJadwalPreview() {
     }
 }
 
-function deleteJadwalImage() {
-    if (!confirm('Yakin ingin menghapus gambar jadwal pelajaran?')) return;
+function deleteJadwalData() {
+    if (!confirm('Yakin ingin menghapus jadwal pelajaran?')) return;
 
     localStorage.removeItem('jadwalPelajaran');
     loadJadwalPreview();
-    showAlert('Berhasil', 'Gambar jadwal pelajaran berhasil dihapus!', 'success');
+    showAlert('Berhasil', 'Jadwal pelajaran berhasil dihapus!', 'success');
 
-    // Reset input
+    // Reset inputs
     const fileInput = document.getElementById('jadwalFileInput');
+    const urlInput = document.getElementById('jadwalUrlInput');
     if (fileInput) fileInput.value = '';
+    if (urlInput) urlInput.value = '';
 }
 
 function openJadwalFullscreen() {
@@ -1021,6 +1093,7 @@ function openJadwalFullscreen() {
     if (!saved) return;
 
     const data = JSON.parse(saved);
+    if (data.type !== 'image') return;
 
     const overlay = document.createElement('div');
     overlay.className = 'jadwal-fullscreen-overlay';
@@ -1028,7 +1101,7 @@ function openJadwalFullscreen() {
         <button class="jadwal-fullscreen-close" onclick="this.parentElement.remove()">
             <i class="fas fa-times"></i>
         </button>
-        <img src="${data.image}" alt="Jadwal Pelajaran">
+        <img src="${data.data}" alt="Jadwal Pelajaran">
     `;
     overlay.addEventListener('click', function (e) {
         if (e.target === overlay) overlay.remove();
@@ -1063,10 +1136,11 @@ function initJadwalDragDrop() {
         if (files.length > 0) {
             const fileInput = document.getElementById('jadwalFileInput');
             fileInput.files = files;
-            uploadJadwalImage(fileInput);
+            uploadJadwalFile(fileInput);
         }
     });
 }
+
 
 // ===================== Kelola Kelas =====================
 function loadKelolaKelas() {
