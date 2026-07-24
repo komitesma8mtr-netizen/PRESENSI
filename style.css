@@ -958,18 +958,50 @@ textarea:focus {
     max-width: 200px;
 }
 
+.monitoring-section {
+    margin-bottom: 28px;
+}
+
+.monitoring-section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.monitoring-section-title.reguler {
+    background: rgba(22, 163, 74, 0.1);
+    color: var(--accent-primary);
+    border-left: 4px solid var(--accent-primary);
+}
+
+.monitoring-section-title.khusus {
+    background: rgba(168, 85, 247, 0.1);
+    color: #a855f7;
+    border-left: 4px solid #a855f7;
+}
+
 .monitoring-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
 }
 
 .class-card {
-    padding: 20px;
+    padding: 16px 12px;
     border-radius: var(--radius);
     text-align: center;
     transition: all 0.3s;
     border: 2px solid var(--glass-border);
+}
+
+.class-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 .class-card.filled {
@@ -983,20 +1015,37 @@ textarea:focus {
 }
 
 .class-name {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 700;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
 }
 
 .class-status {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: var(--text-secondary);
 }
 
 .class-teacher {
-    font-size: 0.9rem;
-    margin-top: 8px;
+    font-size: 0.75rem;
+    margin-top: 6px;
     color: var(--success);
+    font-weight: 600;
+    word-break: break-word;
+}
+
+.class-mapel {
+    font-size: 0.7rem;
+    margin-top: 4px;
+    color: var(--accent-secondary);
+    font-style: italic;
+}
+
+.class-keterangan {
+    font-size: 0.65rem;
+    margin-top: 3px;
+    color: var(--text-secondary);
+    opacity: 0.8;
+    word-break: break-word;
 }
 
 /* ===================== Search ===================== */

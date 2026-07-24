@@ -192,7 +192,14 @@ function renderAdminMonitoring() {
                 </select>
                 <button class="btn btn-primary" onclick="refreshMonitoring()"><i class="fas fa-sync"></i> Refresh</button>
             </div>
-            <div id="monitoringGrid" class="monitoring-grid"></div>
+            <div class="monitoring-section">
+                <h2 class="monitoring-section-title reguler"><i class="fas fa-school"></i> Kelas Reguler</h2>
+                <div id="monitoringGridReguler" class="monitoring-grid"></div>
+            </div>
+            <div class="monitoring-section">
+                <h2 class="monitoring-section-title khusus"><i class="fas fa-door-open"></i> Ruangan Khusus</h2>
+                <div id="monitoringGridKhusus" class="monitoring-grid"></div>
+            </div>
         </div>
     `;
 }

@@ -295,29 +295,41 @@ async function updateMonitoring() {
     const jam = document.getElementById('monitorJam')?.value || '';
     const today = getTodayDate();
 
-    const container = document.getElementById('monitoringGrid');
-    if (!container) return;
+    const containerReguler = document.getElementById('monitoringGridReguler');
+    const containerKhusus = document.getElementById('monitoringGridKhusus');
+    if (!containerReguler && !containerKhusus) return;
 
-    container.innerHTML = '<div style="grid-column:1/-1;text-align:center"><i class="fas fa-spinner fa-spin"></i> Memuat...</div>';
+    const loadingHtml = '<div style="grid-column:1/-1;text-align:center"><i class="fas fa-spinner fa-spin"></i> Memuat...</div>';
+    if (containerReguler) containerReguler.innerHTML = loadingHtml;
+    if (containerKhusus) containerKhusus.innerHTML = loadingHtml;
 
     try {
         const records = await getAttendance('', today);
 
-        container.innerHTML = KELAS_LIST.map(kelas => {
+        const renderCards = (kelasList) => kelasList.map(kelas => {
             const kelasRecords = records.filter(r => r.kelas === kelas && (jam === '' || r.jam == jam));
             const isFilled = kelasRecords.length > 0;
             const teacher = isFilled ? kelasRecords[0].nama : '';
+            const mapel = isFilled ? (kelasRecords[0].mapel || '') : '';
+            const keterangan = isFilled ? (kelasRecords[0].keterangan || '') : '';
 
             return `
                 <div class="class-card glass ${isFilled ? 'filled' : 'empty'}">
                     <div class="class-name">${kelas}</div>
                     <div class="class-status">${isFilled ? 'Terisi' : 'Kosong'}</div>
                     ${teacher ? `<div class="class-teacher">${teacher.split(',')[0]}</div>` : ''}
+                    ${mapel ? `<div class="class-mapel">${mapel}</div>` : ''}
+                    ${keterangan ? `<div class="class-keterangan">${keterangan}</div>` : ''}
                 </div>
             `;
         }).join('');
+
+        if (containerReguler) containerReguler.innerHTML = renderCards(KELAS_REGULER);
+        if (containerKhusus) containerKhusus.innerHTML = renderCards(RUANGAN_KHUSUS);
     } catch (e) {
-        container.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--danger)">Gagal memuat data</div>';
+        const errorHtml = '<div style="grid-column:1/-1;text-align:center;color:var(--danger)">Gagal memuat data</div>';
+        if (containerReguler) containerReguler.innerHTML = errorHtml;
+        if (containerKhusus) containerKhusus.innerHTML = errorHtml;
     }
 }
 
