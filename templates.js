@@ -25,6 +25,7 @@ function renderGuruPage() {
             <div class="tab-navigation">
                 <button class="tab-btn active" data-tab="absensi"><i class="fas fa-qrcode"></i><span>Absensi</span></button>
                 <button class="tab-btn" data-tab="riwayat"><i class="fas fa-history"></i><span>Riwayat</span></button>
+                <button class="tab-btn" data-tab="jadwal"><i class="fas fa-calendar-alt"></i><span>Jadwal</span></button>
             </div>
             <div id="tabAbsensi" class="tab-content active">
                 <div class="card glass">
@@ -99,6 +100,19 @@ function renderGuruPage() {
                             <button class="btn btn-secondary" onclick="resetFilterRiwayat()"><i class="fas fa-sync"></i> Reset</button>
                         </div>
                         <div id="riwayatList" class="riwayat-list"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="tabJadwal" class="tab-content">
+                <div class="card glass">
+                    <div class="card-header"><h2><i class="fas fa-calendar-alt"></i> Jadwal Pelajaran</h2></div>
+                    <div class="card-body">
+                        <div id="guruJadwalContent" class="guru-jadwal-content">
+                            <div class="empty-state">
+                                <i class="fas fa-calendar-times"></i>
+                                <p>Belum ada jadwal pelajaran yang diupload.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

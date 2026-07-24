@@ -160,9 +160,91 @@ function setupGuruTabs() {
 
             if (tabId === 'riwayat') {
                 loadRiwayatAbsensi();
+            } else if (tabId === 'jadwal') {
+                loadGuruJadwal();
             }
         });
     });
+}
+
+function loadGuruJadwal() {
+    const container = document.getElementById('guruJadwalContent');
+    if (!container) return;
+
+    try {
+        const saved = localStorage.getItem('jadwalPelajaran');
+        if (!saved) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-calendar-times"></i>
+                    <p>Belum ada jadwal pelajaran yang diupload.</p>
+                </div>
+            `;
+            return;
+        }
+
+        const data = JSON.parse(saved);
+
+        if (data.type === 'image') {
+            container.innerHTML = `
+                <div class="guru-jadwal-preview">
+                    <img src="${data.data}" alt="Jadwal Pelajaran" onclick="openJadwalFullscreen()">
+                </div>
+                <div class="guru-jadwal-actions">
+                    <a href="${data.data}" target="_blank" download="${data.fileName || 'jadwal.jpg'}" class="btn btn-secondary btn-full">
+                        <i class="fas fa-external-link-alt"></i> Buka di Tab Baru
+                    </a>
+                </div>
+            `;
+        } else if (data.type === 'pdf') {
+            container.innerHTML = `
+                <div class="guru-jadwal-preview">
+                    <object data="${data.data}" type="application/pdf" class="guru-jadwal-pdf">
+                        <p>Browser tidak mendukung preview PDF.</p>
+                    </object>
+                </div>
+                <div class="guru-jadwal-actions">
+                    <a href="${data.data}" target="_blank" class="btn btn-secondary btn-full">
+                        <i class="fas fa-external-link-alt"></i> Buka di Tab Baru
+                    </a>
+                </div>
+            `;
+        } else if (data.type === 'url') {
+            container.innerHTML = `
+                <div class="guru-jadwal-preview">
+                    <iframe src="${data.url}" class="guru-jadwal-iframe" frameborder="0" allowfullscreen></iframe>
+                </div>
+                <div class="guru-jadwal-actions">
+                    <a href="${data.url}" target="_blank" class="btn btn-secondary btn-full">
+                        <i class="fas fa-external-link-alt"></i> Buka di Tab Baru
+                    </a>
+                </div>
+            `;
+        } else {
+            // Legacy format (old data with .image property)
+            const imgSrc = data.image || data.data;
+            if (imgSrc) {
+                container.innerHTML = `
+                    <div class="guru-jadwal-preview">
+                        <img src="${imgSrc}" alt="Jadwal Pelajaran" onclick="openJadwalFullscreen()">
+                    </div>
+                    <div class="guru-jadwal-actions">
+                        <a href="${imgSrc}" target="_blank" class="btn btn-secondary btn-full">
+                            <i class="fas fa-external-link-alt"></i> Buka di Tab Baru
+                        </a>
+                    </div>
+                `;
+            }
+        }
+    } catch (e) {
+        console.error('Error loading guru jadwal:', e);
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Gagal memuat jadwal pelajaran.</p>
+            </div>
+        `;
+    }
 }
 
 // ===================== Modal Functions =====================

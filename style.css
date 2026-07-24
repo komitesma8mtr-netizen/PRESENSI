@@ -2025,6 +2025,56 @@ textarea:focus {
     border: 1px solid var(--glass-border);
 }
 
+/* ===================== Guru Jadwal Tab ===================== */
+.guru-jadwal-content {
+    text-align: center;
+}
+
+.guru-jadwal-preview {
+    margin-bottom: 16px;
+}
+
+.guru-jadwal-preview img {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    cursor: zoom-in;
+    transition: transform 0.3s ease;
+}
+
+.guru-jadwal-preview img:hover {
+    transform: scale(1.01);
+}
+
+.guru-jadwal-pdf {
+    width: 100%;
+    height: 70vh;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--glass-border);
+}
+
+.guru-jadwal-iframe {
+    width: 100%;
+    height: 70vh;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--glass-border);
+}
+
+.guru-jadwal-actions {
+    margin-top: 16px;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.guru-jadwal-actions .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
 /* Fullscreen overlay for jadwal preview */
 .jadwal-fullscreen-overlay {
     position: fixed;
