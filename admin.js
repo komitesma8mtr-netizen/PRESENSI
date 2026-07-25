@@ -969,6 +969,73 @@ function uploadJadwalFile(input) {
     reader.readAsDataURL(file);
 }
 
+// Helper: Extract Google Drive file ID from various URL formats
+function extractGoogleDriveFileId(url) {
+    // Pattern 1: https://drive.google.com/file/d/FILE_ID/view?...
+    let match = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (match) return match[1];
+
+    // Pattern 2: https://drive.google.com/open?id=FILE_ID
+    match = url.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/);
+    if (match) return match[1];
+
+    // Pattern 3: ?id=FILE_ID in any Google Drive URL
+    match = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if (match && url.includes('google.com')) return match[1];
+
+    // Pattern 4: /uc?export=...&id=FILE_ID
+    match = url.match(/\/uc\?.*id=([a-zA-Z0-9_-]+)/);
+    if (match) return match[1];
+
+    return null;
+}
+
+// Helper: Convert Google Drive URL to various usable formats
+function convertGoogleDriveUrl(url) {
+    const fileId = extractGoogleDriveFileId(url);
+    
+    if (fileId) {
+        return {
+            // Direct image/file URL (works for images shared as "Anyone with link")
+            directUrl: `https://drive.google.com/uc?export=view&id=${fileId}`,
+            // Thumbnail URL (works as fallback, resized)
+            thumbnailUrl: `https://drive.google.com/thumbnail?id=${fileId}&sz=w1200`,
+            // Preview URL (for iframe, may be blocked)
+            previewUrl: `https://drive.google.com/file/d/${fileId}/preview`,
+            // Original URL for "open in new tab"
+            originalUrl: url,
+            fileId: fileId,
+            isGoogleDrive: true
+        };
+    }
+
+    // Check for Google Docs/Sheets/Slides
+    let match = url.match(/docs\.google\.com\/(spreadsheets|document|presentation)\/d\/([a-zA-Z0-9_-]+)/);
+    if (match) {
+        const type = match[1];
+        const id = match[2];
+        return {
+            directUrl: `https://docs.google.com/${type}/d/${id}/preview`,
+            thumbnailUrl: null,
+            previewUrl: `https://docs.google.com/${type}/d/${id}/preview`,
+            originalUrl: url,
+            fileId: id,
+            isGoogleDrive: true,
+            isGoogleDocs: true
+        };
+    }
+
+    // Not a Google Drive URL
+    return {
+        directUrl: url,
+        thumbnailUrl: null,
+        previewUrl: url,
+        originalUrl: url,
+        fileId: null,
+        isGoogleDrive: false
+    };
+}
+
 function simpanJadwalUrl() {
     const urlInput = document.getElementById('jadwalUrlInput');
     if (!urlInput) return;
@@ -987,16 +1054,30 @@ function simpanJadwalUrl() {
         return;
     }
 
+    // Convert Google Drive URL
+    const converted = convertGoogleDriveUrl(url);
+
     const jadwalData = {
         type: 'url',
-        url: url,
+        url: converted.directUrl,
+        thumbnailUrl: converted.thumbnailUrl,
+        previewUrl: converted.previewUrl,
+        originalUrl: converted.originalUrl,
+        fileId: converted.fileId,
+        isGoogleDrive: converted.isGoogleDrive,
+        isGoogleDocs: converted.isGoogleDocs || false,
         uploadDate: new Date().toISOString()
     };
 
     localStorage.setItem('jadwalPelajaran', JSON.stringify(jadwalData));
     loadJadwalPreview();
     urlInput.value = '';
-    showAlert('Berhasil', 'URL jadwal berhasil disimpan!', 'success');
+
+    if (converted.isGoogleDrive) {
+        showAlert('Berhasil', 'URL jadwal berhasil disimpan! Pastikan file Google Drive sudah di-share "Anyone with the link".', 'success');
+    } else {
+        showAlert('Berhasil', 'URL jadwal berhasil disimpan!', 'success');
+    }
 }
 
 function loadJadwalPreview() {
@@ -1050,12 +1131,40 @@ function loadJadwalPreview() {
         // Preview content
         if (previewContent) {
             if (data.type === 'url') {
-                previewContent.innerHTML = `
-                    <a href="${data.url}" target="_blank" class="jadwal-url-link">
-                        <i class="fas fa-external-link-alt"></i> Buka Jadwal di Tab Baru
-                    </a>
-                    <iframe src="${data.url}" class="jadwal-iframe" frameborder="0" allowfullscreen></iframe>
-                `;
+                const linkUrl = data.originalUrl || data.url;
+
+                if (data.isGoogleDrive && !data.isGoogleDocs) {
+                    // Google Drive file: display as image directly (not iframe, which gets blocked)
+                    const directUrl = data.url;
+                    const thumbUrl = data.thumbnailUrl || directUrl;
+                    previewContent.innerHTML = `
+                        <a href="${linkUrl}" target="_blank" class="jadwal-url-link">
+                            <i class="fas fa-external-link-alt"></i> Buka Jadwal di Tab Baru
+                        </a>
+                        <div class="jadwal-preview">
+                            <img src="${directUrl}" alt="Jadwal Pelajaran" 
+                                 onerror="this.onerror=null; this.src='${thumbUrl}';"
+                                 onclick="window.open('${linkUrl}', '_blank')" 
+                                 style="cursor:pointer; width:100%; border-radius:8px;">
+                        </div>
+                    `;
+                } else if (data.isGoogleDocs) {
+                    // Google Docs/Sheets/Slides: iframe works for these
+                    previewContent.innerHTML = `
+                        <a href="${linkUrl}" target="_blank" class="jadwal-url-link">
+                            <i class="fas fa-external-link-alt"></i> Buka Jadwal di Tab Baru
+                        </a>
+                        <iframe src="${data.previewUrl || data.url}" class="jadwal-iframe" frameborder="0" allowfullscreen></iframe>
+                    `;
+                } else {
+                    // Non-Google URL: use iframe
+                    previewContent.innerHTML = `
+                        <a href="${linkUrl}" target="_blank" class="jadwal-url-link">
+                            <i class="fas fa-external-link-alt"></i> Buka Jadwal di Tab Baru
+                        </a>
+                        <iframe src="${data.url}" class="jadwal-iframe" frameborder="0" allowfullscreen></iframe>
+                    `;
+                }
             } else if (data.type === 'pdf') {
                 previewContent.innerHTML = `
                     <object data="${data.data}" type="application/pdf" class="jadwal-pdf-embed">

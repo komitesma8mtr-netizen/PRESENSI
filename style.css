@@ -2267,3 +2267,258 @@ textarea:focus {
         grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     }
 }
+
+/* ===================== Jadwal Pelajaran ===================== */
+.jadwal-iframe,
+.guru-jadwal-iframe {
+    width: 100%;
+    min-height: 500px;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+}
+
+.jadwal-pdf-embed {
+    width: 100%;
+    min-height: 500px;
+    border-radius: var(--radius-sm);
+}
+
+.jadwal-url-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: var(--accent-primary);
+    color: white;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    transition: all 0.3s;
+    margin-bottom: 12px;
+    text-decoration: none;
+}
+
+.jadwal-url-link:hover {
+    background: var(--accent-secondary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4);
+}
+
+.jadwal-gdrive-warning {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    border-radius: var(--radius-sm);
+    color: var(--warning);
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+}
+
+.jadwal-gdrive-warning i {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.jadwal-gdrive-warning strong {
+    color: inherit;
+}
+
+.jadwal-preview img {
+    width: 100%;
+    border-radius: var(--radius-sm);
+    cursor: zoom-in;
+}
+
+.jadwal-file-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    margin-bottom: 12px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.jadwal-file-info i {
+    font-size: 1.2rem;
+}
+
+.jadwal-date {
+    margin-left: auto;
+    font-size: 0.8rem;
+    opacity: 0.7;
+}
+
+.guru-jadwal-preview {
+    margin-bottom: 12px;
+}
+
+.guru-jadwal-preview img {
+    width: 100%;
+    border-radius: var(--radius-sm);
+    cursor: zoom-in;
+}
+
+.guru-jadwal-actions {
+    margin-top: 12px;
+}
+
+.jadwal-upload-area {
+    border: 2px dashed var(--glass-border);
+    border-radius: var(--radius);
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.jadwal-upload-area:hover,
+.jadwal-upload-area.drag-over {
+    border-color: var(--accent-primary);
+    background: rgba(22, 163, 74, 0.05);
+}
+
+.jadwal-upload-icon {
+    font-size: 3rem;
+    color: var(--accent-primary);
+    margin-bottom: 12px;
+}
+
+.jadwal-upload-text {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.jadwal-upload-subtitle {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+}
+
+.jadwal-file-types {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.file-type-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.img-badge {
+    background: rgba(22, 163, 74, 0.15);
+    color: var(--accent-primary);
+}
+
+.pdf-badge {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--danger);
+}
+
+.jadwal-upload-hint {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+
+.jadwal-url-divider {
+    text-align: center;
+    margin: 20px 0;
+    position: relative;
+}
+
+.jadwal-url-divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--glass-border);
+}
+
+.jadwal-url-divider span {
+    position: relative;
+    background: var(--glass-bg);
+    padding: 0 16px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.jadwal-url-section {
+    margin-top: 12px;
+}
+
+.jadwal-url-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.jadwal-url-form {
+    display: flex;
+    gap: 8px;
+}
+
+.jadwal-url-form input {
+    flex: 1;
+}
+
+.jadwal-url-hint {
+    margin-top: 8px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+
+.jadwal-fullscreen-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.jadwal-fullscreen-overlay img {
+    max-width: 95%;
+    max-height: 95%;
+    object-fit: contain;
+}
+
+.jadwal-fullscreen-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+[data-theme="dark"] .jadwal-gdrive-warning {
+    background: rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.3);
+}

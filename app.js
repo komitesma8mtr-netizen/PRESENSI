@@ -210,16 +210,50 @@ function loadGuruJadwal() {
                 </div>
             `;
         } else if (data.type === 'url') {
-            container.innerHTML = `
-                <div class="guru-jadwal-preview">
-                    <iframe src="${data.url}" class="guru-jadwal-iframe" frameborder="0" allowfullscreen></iframe>
-                </div>
-                <div class="guru-jadwal-actions">
-                    <a href="${data.url}" target="_blank" class="btn btn-secondary btn-full">
-                        <i class="fas fa-external-link-alt"></i> Buka di Tab Baru
-                    </a>
-                </div>
-            `;
+            const linkUrl = data.originalUrl || data.url;
+
+            if (data.isGoogleDrive && !data.isGoogleDocs) {
+                // Google Drive file: display as image (iframe gets blocked)
+                const directUrl = data.url;
+                const thumbUrl = data.thumbnailUrl || directUrl;
+                container.innerHTML = `
+                    <div class="guru-jadwal-preview">
+                        <img src="${directUrl}" alt="Jadwal Pelajaran" 
+                             onerror="this.onerror=null; this.src='${thumbUrl}';"
+                             onclick="window.open('${linkUrl}', '_blank')"
+                             style="cursor:pointer; width:100%; border-radius:8px;">
+                    </div>
+                    <div class="guru-jadwal-actions">
+                        <a href="${linkUrl}" target="_blank" class="btn btn-secondary btn-full">
+                            <i class="fas fa-external-link-alt"></i> Buka Jadwal di Tab Baru
+                        </a>
+                    </div>
+                `;
+            } else if (data.isGoogleDocs) {
+                // Google Docs/Sheets: iframe works for these
+                container.innerHTML = `
+                    <div class="guru-jadwal-preview">
+                        <iframe src="${data.previewUrl || data.url}" class="guru-jadwal-iframe" frameborder="0" allowfullscreen></iframe>
+                    </div>
+                    <div class="guru-jadwal-actions">
+                        <a href="${linkUrl}" target="_blank" class="btn btn-secondary btn-full">
+                            <i class="fas fa-external-link-alt"></i> Buka Jadwal di Tab Baru
+                        </a>
+                    </div>
+                `;
+            } else {
+                // Non-Google URL: use iframe
+                container.innerHTML = `
+                    <div class="guru-jadwal-preview">
+                        <iframe src="${data.url}" class="guru-jadwal-iframe" frameborder="0" allowfullscreen></iframe>
+                    </div>
+                    <div class="guru-jadwal-actions">
+                        <a href="${linkUrl}" target="_blank" class="btn btn-secondary btn-full">
+                            <i class="fas fa-external-link-alt"></i> Buka Jadwal di Tab Baru
+                        </a>
+                    </div>
+                `;
+            }
         } else {
             // Legacy format (old data with .image property)
             const imgSrc = data.image || data.data;
