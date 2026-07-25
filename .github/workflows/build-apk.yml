@@ -35,18 +35,23 @@ jobs:
         run: npm install -g cordova@12
 
       - name: Install ImageMagick
-        run: sudo apt-get install -y imagemagick
+        run: sudo apt-get update && sudo apt-get install -y imagemagick
 
       - name: Generate App Icons
         run: |
           mkdir -p res/icons
           # Generate all required Android icon sizes from icon.png
-          convert icon.png -resize 36x36   res/icons/icon-36-ldpi.png
-          convert icon.png -resize 48x48   res/icons/icon-48-mdpi.png
-          convert icon.png -resize 72x72   res/icons/icon-72-hdpi.png
-          convert icon.png -resize 96x96   res/icons/icon-96-xhdpi.png
-          convert icon.png -resize 144x144 res/icons/icon-144-xxhdpi.png
-          convert icon.png -resize 192x192 res/icons/icon-192-xxxhdpi.png
+          # Use 'magick' for ImageMagick 7+, fallback to 'convert' for older versions
+          IMG_CMD="magick"
+          if ! command -v magick &> /dev/null; then
+            IMG_CMD="convert"
+          fi
+          $IMG_CMD icon.png -resize 36x36   res/icons/icon-36-ldpi.png
+          $IMG_CMD icon.png -resize 48x48   res/icons/icon-48-mdpi.png
+          $IMG_CMD icon.png -resize 72x72   res/icons/icon-72-hdpi.png
+          $IMG_CMD icon.png -resize 96x96   res/icons/icon-96-xhdpi.png
+          $IMG_CMD icon.png -resize 144x144 res/icons/icon-144-xxhdpi.png
+          $IMG_CMD icon.png -resize 192x192 res/icons/icon-192-xxxhdpi.png
           ls -la res/icons/
 
       - name: Create Cordova Project
@@ -140,9 +145,34 @@ jobs:
           export ANDROID_SDK_ROOT=$ANDROID_HOME
           cordova build android -- --gradleArg=-Dorg.gradle.jvmargs=-Xmx2048m
 
-      - name: Upload APK
+      - name: Upload APK as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: PresensiKelas-APK
           path: apk-build/platforms/android/app/build/outputs/apk/debug/*.apk
           retention-days: 90
+
+      - name: Create Release with APK
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0-build${{ github.run_number }}
+          name: "Presensi Kelas APK - Build #${{ github.run_number }}"
+          body: |
+            ## 📱 Presensi Kelas SMAN 8 Mataram
+            
+            APK build otomatis dari commit `${{ github.sha }}`.
+            
+            ### 📥 Cara Install:
+            1. Download file `.apk` di bawah
+            2. Buka file di HP Android
+            3. Izinkan instalasi dari sumber tidak dikenal
+            4. Install dan buka aplikasi
+            
+            ### ⚠️ Catatan:
+            - Ini adalah **debug build** (bukan release/signed)
+            - Pastikan koneksi internet aktif saat menggunakan aplikasi
+          files: apk-build/platforms/android/app/build/outputs/apk/debug/*.apk
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
