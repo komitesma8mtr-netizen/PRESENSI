@@ -167,117 +167,154 @@ function setupGuruTabs() {
     });
 }
 
-function loadGuruJadwal() {
+async function loadGuruJadwal() {
     const container = document.getElementById('guruJadwalContent');
     if (!container) return;
 
+    // Show loading
+    container.innerHTML = `
+        <div class="empty-state">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Memuat jadwal pelajaran...</p>
+        </div>
+    `;
+
+    let data = null;
+
+    // Try to load from server first
     try {
-        const saved = localStorage.getItem('jadwalPelajaran');
-        if (!saved) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-calendar-times"></i>
-                    <p>Belum ada jadwal pelajaran yang diupload.</p>
-                </div>
-            `;
-            return;
-        }
-
-        const data = JSON.parse(saved);
-
-        if (data.type === 'image') {
-            container.innerHTML = `
-                <div class="guru-jadwal-preview">
-                    <img src="${data.data}" alt="Jadwal Pelajaran" onclick="openJadwalFullscreen()">
-                </div>
-                <div class="guru-jadwal-actions">
-                    <a href="${data.data}" target="_blank" download="${data.fileName || 'jadwal.jpg'}" class="btn btn-secondary btn-full">
-                        <i class="fas fa-external-link-alt"></i> Buka di Tab Baru
-                    </a>
-                </div>
-            `;
-        } else if (data.type === 'pdf') {
-            container.innerHTML = `
-                <div class="guru-jadwal-preview">
-                    <object data="${data.data}" type="application/pdf" class="guru-jadwal-pdf">
-                        <p>Browser tidak mendukung preview PDF.</p>
-                    </object>
-                </div>
-                <div class="guru-jadwal-actions">
-                    <a href="${data.data}" target="_blank" class="btn btn-secondary btn-full">
-                        <i class="fas fa-external-link-alt"></i> Buka di Tab Baru
-                    </a>
-                </div>
-            `;
-        } else if (data.type === 'url') {
-            const linkUrl = data.originalUrl || data.url;
-
-            if (data.isGoogleDrive && !data.isGoogleDocs) {
-                // Google Drive file: display as image (iframe gets blocked)
-                const directUrl = data.url;
-                const thumbUrl = data.thumbnailUrl || directUrl;
-                container.innerHTML = `
-                    <div class="guru-jadwal-preview">
-                        <img src="${directUrl}" alt="Jadwal Pelajaran" 
-                             onerror="this.onerror=null; this.src='${thumbUrl}';"
-                             onclick="window.open('${linkUrl}', '_blank')"
-                             style="cursor:pointer; width:100%; border-radius:8px;">
-                    </div>
-                    <div class="guru-jadwal-actions">
-                        <a href="${linkUrl}" target="_blank" class="btn btn-secondary btn-full">
-                            <i class="fas fa-external-link-alt"></i> Buka Jadwal di Tab Baru
-                        </a>
-                    </div>
-                `;
-            } else if (data.isGoogleDocs) {
-                // Google Docs/Sheets: iframe works for these
-                container.innerHTML = `
-                    <div class="guru-jadwal-preview">
-                        <iframe src="${data.previewUrl || data.url}" class="guru-jadwal-iframe" frameborder="0" allowfullscreen></iframe>
-                    </div>
-                    <div class="guru-jadwal-actions">
-                        <a href="${linkUrl}" target="_blank" class="btn btn-secondary btn-full">
-                            <i class="fas fa-external-link-alt"></i> Buka Jadwal di Tab Baru
-                        </a>
-                    </div>
-                `;
-            } else {
-                // Non-Google URL: use iframe
-                container.innerHTML = `
-                    <div class="guru-jadwal-preview">
-                        <iframe src="${data.url}" class="guru-jadwal-iframe" frameborder="0" allowfullscreen></iframe>
-                    </div>
-                    <div class="guru-jadwal-actions">
-                        <a href="${linkUrl}" target="_blank" class="btn btn-secondary btn-full">
-                            <i class="fas fa-external-link-alt"></i> Buka Jadwal di Tab Baru
-                        </a>
-                    </div>
-                `;
-            }
-        } else {
-            // Legacy format (old data with .image property)
-            const imgSrc = data.image || data.data;
-            if (imgSrc) {
-                container.innerHTML = `
-                    <div class="guru-jadwal-preview">
-                        <img src="${imgSrc}" alt="Jadwal Pelajaran" onclick="openJadwalFullscreen()">
-                    </div>
-                    <div class="guru-jadwal-actions">
-                        <a href="${imgSrc}" target="_blank" class="btn btn-secondary btn-full">
-                            <i class="fas fa-external-link-alt"></i> Buka di Tab Baru
-                        </a>
-                    </div>
-                `;
+        const result = await apiGetSettings();
+        if (result.success && result.settings.jadwalPelajaran) {
+            const serverData = result.settings.jadwalPelajaran;
+            if (serverData && serverData.trim() !== '') {
+                data = JSON.parse(serverData);
+                // Cache to localStorage
+                localStorage.setItem('jadwalPelajaran', serverData);
             }
         }
     } catch (e) {
-        console.error('Error loading guru jadwal:', e);
+        console.error('Error loading jadwal from server:', e);
+    }
+
+    // Fallback to localStorage if server failed
+    if (!data) {
+        try {
+            const saved = localStorage.getItem('jadwalPelajaran');
+            if (saved) {
+                data = JSON.parse(saved);
+            }
+        } catch (e) {
+            console.error('Error loading jadwal from localStorage:', e);
+        }
+    }
+
+    // No jadwal found
+    if (!data) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-calendar-times"></i>
+                <p>Belum ada jadwal pelajaran yang diupload.</p>
+            </div>
+        `;
+        return;
+    }
+
+    // Render jadwal based on type
+    try {
+        renderGuruJadwalContent(container, data);
+    } catch (e) {
+        console.error('Error rendering guru jadwal:', e);
         container.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-exclamation-triangle"></i>
                 <p>Gagal memuat jadwal pelajaran.</p>
             </div>
         `;
+    }
+}
+
+function renderGuruJadwalContent(container, data) {
+    if (data.type === 'image') {
+        container.innerHTML = `
+            <div class="guru-jadwal-preview">
+                <img src="${data.data}" alt="Jadwal Pelajaran" onclick="openJadwalFullscreen()">
+            </div>
+            <div class="guru-jadwal-actions">
+                <a href="${data.data}" target="_blank" download="${data.fileName || 'jadwal.jpg'}" class="btn btn-secondary btn-full">
+                    <i class="fas fa-external-link-alt"></i> Buka di Tab Baru
+                </a>
+            </div>
+        `;
+    } else if (data.type === 'pdf') {
+        container.innerHTML = `
+            <div class="guru-jadwal-preview">
+                <object data="${data.data}" type="application/pdf" class="guru-jadwal-pdf">
+                    <p>Browser tidak mendukung preview PDF.</p>
+                </object>
+            </div>
+            <div class="guru-jadwal-actions">
+                <a href="${data.data}" target="_blank" class="btn btn-secondary btn-full">
+                    <i class="fas fa-external-link-alt"></i> Buka di Tab Baru
+                </a>
+            </div>
+        `;
+    } else if (data.type === 'url') {
+        const linkUrl = data.originalUrl || data.url;
+
+        if (data.isGoogleDrive && !data.isGoogleDocs) {
+            const directUrl = data.url;
+            const thumbUrl = data.thumbnailUrl || directUrl;
+            container.innerHTML = `
+                <div class="guru-jadwal-preview">
+                    <img src="${directUrl}" alt="Jadwal Pelajaran" 
+                         onerror="this.onerror=null; this.src='${thumbUrl}';"
+                         onclick="window.open('${linkUrl}', '_blank')"
+                         style="cursor:pointer; width:100%; border-radius:8px;">
+                </div>
+                <div class="guru-jadwal-actions">
+                    <a href="${linkUrl}" target="_blank" class="btn btn-secondary btn-full">
+                        <i class="fas fa-external-link-alt"></i> Buka Jadwal di Tab Baru
+                    </a>
+                </div>
+            `;
+        } else if (data.isGoogleDocs) {
+            container.innerHTML = `
+                <div class="guru-jadwal-preview">
+                    <iframe src="${data.previewUrl || data.url}" class="guru-jadwal-iframe" frameborder="0" allowfullscreen></iframe>
+                </div>
+                <div class="guru-jadwal-actions">
+                    <a href="${linkUrl}" target="_blank" class="btn btn-secondary btn-full">
+                        <i class="fas fa-external-link-alt"></i> Buka Jadwal di Tab Baru
+                    </a>
+                </div>
+            `;
+        } else {
+            container.innerHTML = `
+                <div class="guru-jadwal-preview">
+                    <iframe src="${data.url}" class="guru-jadwal-iframe" frameborder="0" allowfullscreen></iframe>
+                </div>
+                <div class="guru-jadwal-actions">
+                    <a href="${linkUrl}" target="_blank" class="btn btn-secondary btn-full">
+                        <i class="fas fa-external-link-alt"></i> Buka Jadwal di Tab Baru
+                    </a>
+                </div>
+            `;
+        }
+    } else {
+        // Legacy format
+        const imgSrc = data.image || data.data;
+        if (imgSrc) {
+            container.innerHTML = `
+                <div class="guru-jadwal-preview">
+                    <img src="${imgSrc}" alt="Jadwal Pelajaran" onclick="openJadwalFullscreen()">
+                </div>
+                <div class="guru-jadwal-actions">
+                    <a href="${imgSrc}" target="_blank" class="btn btn-secondary btn-full">
+                        <i class="fas fa-external-link-alt"></i> Buka di Tab Baru
+                    </a>
+                </div>
+            `;
+        }
     }
 }
 

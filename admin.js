@@ -1036,7 +1036,7 @@ function convertGoogleDriveUrl(url) {
     };
 }
 
-function simpanJadwalUrl() {
+async function simpanJadwalUrl() {
     const urlInput = document.getElementById('jadwalUrlInput');
     if (!urlInput) return;
 
@@ -1069,14 +1069,23 @@ function simpanJadwalUrl() {
         uploadDate: new Date().toISOString()
     };
 
+    // Save to localStorage as cache
     localStorage.setItem('jadwalPelajaran', JSON.stringify(jadwalData));
     loadJadwalPreview();
     urlInput.value = '';
 
-    if (converted.isGoogleDrive) {
-        showAlert('Berhasil', 'URL jadwal berhasil disimpan! Pastikan file Google Drive sudah di-share "Anyone with the link".', 'success');
-    } else {
-        showAlert('Berhasil', 'URL jadwal berhasil disimpan!', 'success');
+    // Save to server so all users can see it
+    try {
+        showAlert('Info', 'Menyimpan jadwal ke server...', 'info');
+        await apiSaveSettings({ jadwalPelajaran: JSON.stringify(jadwalData) });
+        if (converted.isGoogleDrive) {
+            showAlert('Berhasil', 'Jadwal berhasil disimpan ke server! Pastikan file Google Drive sudah di-share "Anyone with the link".', 'success');
+        } else {
+            showAlert('Berhasil', 'Jadwal berhasil disimpan ke server!', 'success');
+        }
+    } catch (err) {
+        console.error('Error saving jadwal to server:', err);
+        showAlert('Warning', 'Jadwal tersimpan lokal, tapi gagal sinkron ke server: ' + err.message, 'warning');
     }
 }
 
@@ -1183,12 +1192,20 @@ function loadJadwalPreview() {
     }
 }
 
-function deleteJadwalData() {
+async function deleteJadwalData() {
     if (!confirm('Yakin ingin menghapus jadwal pelajaran?')) return;
 
     localStorage.removeItem('jadwalPelajaran');
     loadJadwalPreview();
-    showAlert('Berhasil', 'Jadwal pelajaran berhasil dihapus!', 'success');
+
+    // Delete from server too
+    try {
+        await apiSaveSettings({ jadwalPelajaran: '' });
+        showAlert('Berhasil', 'Jadwal pelajaran berhasil dihapus dari server!', 'success');
+    } catch (err) {
+        console.error('Error deleting jadwal from server:', err);
+        showAlert('Warning', 'Jadwal dihapus lokal, tapi gagal hapus di server.', 'warning');
+    }
 
     // Reset inputs
     const fileInput = document.getElementById('jadwalFileInput');
