@@ -3,15 +3,15 @@
 
 const DEFAULT_KELAS_REGULER = [
     // Kelas X
-    'X.1', 'X.2', 'X.3', 'X.4', 'X.5', 'X.6', 'X.7', 'X.8',
+    'X.1', 'X.2', 'X.3', 'X.4', 'X.5', 'X.6', 'X.7', 'X.8','X.9','X.10','X.11',
     // Kelas XI
-    'XI. IKL 1', 'XI. IKL 2', 'XI. IKL 3', 'XI. IT 1', 'XI. IT 2', 'XI. HM', 'XI. SOS 1', 'XI. SOS 2', 'XI. SOS 3', 'XI. SOS 4',
+    'XI. SAINS 1', 'XI. SAINS 2', 'XI. SAINS 3', 'XI. SAINS 4', 'XI. SAINS 5', 'XI. SOSIAL 1', 'XI. SOSIAL 2', 'XI. SOSIAL 3', 'XI. SOSIAL 4', 'XI. SOSIAL 5', 'XI. SOSIAL 6',
     // Kelas XII
-    'XII. IKL 1', 'XII. IKL 2', 'XII. IKL 3', 'XII. IT 1', 'XII. IT 2', 'XII. HM', 'XII. SOS 1', 'XII. SOS 2', 'XII. SOS 3'
+    'XII. MIPA 1', 'XII. MIPA 2', 'XII. MIPA 3', 'XII. MIPA 4', 'XII. IPS 1', 'XII. IPS 2', 'XII. IPS 3', 'XII. IPS 4', 'XII. IPS 5'
 ];
 
 const DEFAULT_RUANGAN_KHUSUS = [
-    'MUSHOLLA', 'LAPANGAN. DALAM', 'LAPANGAN. LUAR', 'PERPUSTAKAAN', 'LAB KOMPUTER', 'RUANG AGAMA HINDU', 'UPACARA BENDERA'
+    'MUSHOLLA', 'LAB KIMIA', 'LAB BIOLOGI', 'PERPUSTAKAAN', 'LAB KOMPUTER', 'RUANG AGAMA HINDU'
 ];
 
 // Dynamic kelas lists (loaded from localStorage or defaults)
@@ -200,11 +200,11 @@ async function getSchoolProfile() {
     }
 
     return {
-        name: 'SMA Negeri 1',
+        name: 'SMA Negeri 8 Mataram',
         principal: 'Kepala Sekolah',
         principalNip: '',
         address: '',
-        tahunAjaran: '2025/2026'
+        tahunAjaran: '2026/2027'
     };
 }
 
