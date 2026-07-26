@@ -1089,7 +1089,7 @@ async function simpanJadwalUrl() {
     }
 }
 
-function loadJadwalPreview() {
+async function loadJadwalPreview() {
     const container = document.getElementById('jadwalPreviewContainer');
     const fileInfo = document.getElementById('jadwalFileInfo');
     const previewContent = document.getElementById('jadwalPreviewContent');
@@ -1128,10 +1128,10 @@ function loadJadwalPreview() {
                     <span class="jadwal-date">Diupload: ${dateStr}</span>
                 `;
             } else {
-                const sizeKB = (data.fileSize / 1024).toFixed(1);
+                const sizeKB = ((data.fileSize || 0) / 1024).toFixed(1);
                 fileInfo.innerHTML = `
                     <i class="fas fa-file-image" style="color:var(--accent-primary)"></i>
-                    <span><strong>${data.fileName}</strong> — ${sizeKB} KB</span>
+                    <span><strong>${data.fileName || 'Gambar'}</strong> — ${sizeKB} KB</span>
                     <span class="jadwal-date">Diupload: ${dateStr}</span>
                 `;
             }
@@ -1143,7 +1143,6 @@ function loadJadwalPreview() {
                 const linkUrl = data.originalUrl || data.url;
 
                 if (data.isGoogleDrive && !data.isGoogleDocs) {
-                    // Google Drive file: display as image directly (not iframe, which gets blocked)
                     const directUrl = data.url;
                     const thumbUrl = data.thumbnailUrl || directUrl;
                     previewContent.innerHTML = `
@@ -1156,22 +1155,29 @@ function loadJadwalPreview() {
                                  onclick="window.open('${linkUrl}', '_blank')" 
                                  style="cursor:pointer; width:100%; border-radius:8px;">
                         </div>
+                        <div id="jadwalSyncStatus" class="jadwal-sync-status">
+                            <i class="fas fa-spinner fa-spin"></i> Memeriksa sinkronisasi server...
+                        </div>
                     `;
                 } else if (data.isGoogleDocs) {
-                    // Google Docs/Sheets/Slides: iframe works for these
                     previewContent.innerHTML = `
                         <a href="${linkUrl}" target="_blank" class="jadwal-url-link">
                             <i class="fas fa-external-link-alt"></i> Buka Jadwal di Tab Baru
                         </a>
                         <iframe src="${data.previewUrl || data.url}" class="jadwal-iframe" frameborder="0" allowfullscreen></iframe>
+                        <div id="jadwalSyncStatus" class="jadwal-sync-status">
+                            <i class="fas fa-spinner fa-spin"></i> Memeriksa sinkronisasi server...
+                        </div>
                     `;
                 } else {
-                    // Non-Google URL: use iframe
                     previewContent.innerHTML = `
                         <a href="${linkUrl}" target="_blank" class="jadwal-url-link">
                             <i class="fas fa-external-link-alt"></i> Buka Jadwal di Tab Baru
                         </a>
                         <iframe src="${data.url}" class="jadwal-iframe" frameborder="0" allowfullscreen></iframe>
+                        <div id="jadwalSyncStatus" class="jadwal-sync-status">
+                            <i class="fas fa-spinner fa-spin"></i> Memeriksa sinkronisasi server...
+                        </div>
                     `;
                 }
             } else if (data.type === 'pdf') {
@@ -1179,16 +1185,79 @@ function loadJadwalPreview() {
                     <object data="${data.data}" type="application/pdf" class="jadwal-pdf-embed">
                         <p>Browser tidak mendukung preview PDF. <a href="${data.data}" download="${data.fileName}">Download PDF</a></p>
                     </object>
+                    <div id="jadwalSyncStatus" class="jadwal-sync-status">
+                        <i class="fas fa-info-circle"></i> File PDF hanya tersimpan di perangkat ini (terlalu besar untuk server).
+                    </div>
                 `;
+                return; // PDF/image too large for server
             } else {
                 previewContent.innerHTML = `
                     <img src="${data.data}" alt="Jadwal Pelajaran" onclick="openJadwalFullscreen()" style="cursor:zoom-in">
+                    <div id="jadwalSyncStatus" class="jadwal-sync-status">
+                        <i class="fas fa-info-circle"></i> File gambar hanya tersimpan di perangkat ini. Gunakan URL Google Drive agar bisa dilihat semua guru.
+                    </div>
                 `;
+                return; // Image too large for server
             }
         }
+
+        // Auto-sync URL jadwal to server
+        if (data.type === 'url') {
+            await syncJadwalToServer(saved);
+        }
+
     } catch (e) {
         console.error('Error loading jadwal preview:', e);
         container.classList.add('hidden');
+    }
+}
+
+// Sync jadwal data to server and update status indicator
+async function syncJadwalToServer(jadwalJsonString) {
+    const statusEl = document.getElementById('jadwalSyncStatus');
+
+    try {
+        // Check if server already has jadwal
+        const result = await apiGetSettings();
+        const serverJadwal = result.success ? (result.settings.jadwalPelajaran || '') : '';
+
+        if (serverJadwal && serverJadwal.trim() !== '') {
+            // Server has jadwal data
+            if (statusEl) {
+                statusEl.innerHTML = `
+                    <i class="fas fa-check-circle" style="color:var(--success)"></i> 
+                    <span style="color:var(--success)">Jadwal sudah tersinkron ke server — semua guru bisa melihat jadwal ini.</span>
+                `;
+            }
+        } else {
+            // Server doesn't have jadwal, sync it now
+            if (statusEl) {
+                statusEl.innerHTML = `
+                    <i class="fas fa-sync fa-spin" style="color:var(--warning)"></i> 
+                    <span style="color:var(--warning)">Jadwal belum ada di server. Menyinkronkan...</span>
+                `;
+            }
+
+            await apiSaveSettings({ jadwalPelajaran: jadwalJsonString });
+
+            if (statusEl) {
+                statusEl.innerHTML = `
+                    <i class="fas fa-check-circle" style="color:var(--success)"></i> 
+                    <span style="color:var(--success)">Jadwal berhasil disinkronkan ke server!</span>
+                `;
+            }
+        }
+    } catch (err) {
+        console.error('Error syncing jadwal to server:', err);
+        if (statusEl) {
+            statusEl.innerHTML = `
+                <i class="fas fa-exclamation-triangle" style="color:var(--danger)"></i> 
+                <span style="color:var(--danger)">Gagal sinkron ke server. </span>
+                <button class="btn btn-primary btn-sm" onclick="syncJadwalToServer(localStorage.getItem('jadwalPelajaran'))">
+                    <i class="fas fa-redo"></i> Coba Lagi
+                </button>
+            `;
+        }
     }
 }
 
